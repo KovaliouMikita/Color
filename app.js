@@ -1,68 +1,89 @@
-console.log('Allvvo')
-const cols =document.querySelectorAll('.col')
+const cols = document.querySelectorAll('.col')
 
-document.addEventListener('keydown' , (event) => {
-  //event.preventDefault()
-   if  (event.code.toLowerCase()  === 'space') {
-    setRandomColorls()
-   } 
-} )
+document.addEventListener('keydown', (event) => {
+  event.preventDefault()
+  if (event.code.toLowerCase() === 'space') {
+    setRandomColors()
+  }
+})
 
-document.addEventListener('click' , (event) => {
-    const type = event.target.dataset.type
+document.addEventListener('click', (event) => {
+  const type = event.target.dataset.type
 
-    if ( type === "lock" ) {
-        const node = event.target.tagName.toLowerCase() === "i"
+  if (type === 'lock') {
+    const node =
+      event.target.tagName.toLowerCase() === 'i'
         ? event.target
-        : event.target.chidren[0]
+        : event.target.children[0]
 
     node.classList.toggle('fa-lock-open')
     node.classList.toggle('fa-lock')
-    
-        } else if (type === "copy"){
-            copyToClickBoard(event.target.textContent)
-        }
-    }   
-  )
+  } else if (type === 'copy') {
+    copyToClickboard(event.target.textContent)
+  }
+})
 
-function generereRandomColor(){
-    const hexCodes = '0123456789ABCDEF'
-    let color = ""
-    for (let i = 0; i < 6; i++){
-        color += hexCodes[Math.floor(Math.random()*hexCodes.length)]
-    }
-    return '#' + color
+
+function copyToClickboard(text) {
+    alert(' Текст скопирован')
+  return navigator.clipboard.writeText(text)
+  
 }
 
-function copyToClickBoard(text) {
-    return navigator.clipboard.writeText(text)
-}
+function setRandomColors(isInitial) {
+  const colors = isInitial ? getColorsFromHash() : []
 
-function setRandomColorls(){
-    const colors = []
-    cols.forEach(col=>{
-    const isLoced = col.querySelector("i").classList.contains('fa-lock')
+  cols.forEach((col, index) => {
+    const isLocked = col.querySelector('i').classList.contains('fa-lock')
     const text = col.querySelector('h2')
-    const buttom = col.querySelector('button')
-    const color = chroma.random()
-    
-    if (isLoced) {
-        return
+    const button = col.querySelector('button')
+
+    if (isLocked) {
+      colors.push(text.textContent)
+      return
+    }
+
+    const color = isInitial
+      ? colors[index]
+        ? colors[index]
+        : chroma.random()
+      : chroma.random()
+
+    if (!isInitial) {
+      colors.push(color)
     }
 
     text.textContent = color
-    col.style.background = generereRandomColor()   
+    col.style.background = color
+
     setTextColor(text, color)
-    setTextColor(buttom, color)
+    setTextColor(button, color)
+  })
+
+  updateColorsHash(colors)
+}
+
+function setTextColor(text, color) {
+  const luminance = chroma(color).luminance()
+  text.style.color = luminance > 0.5 ? 'black' : 'white'
+}
+
+function updateColorsHash(colors = []) {
+  document.location.hash = colors
+    .map((col) => {
+      return col.toString().substring(1)
     })
-}
-function setTextColor (text,color){
-    const luminance = chroma(color).luminance()
-    text.style.color = luminance > 0.5 ? 'black' : 'white'
+    .join('-')
 }
 
-function updateColorHash(colors = []){
-    document.location.hash = colors.toString()
+function getColorsFromHash() {
+  if (document.location.hash.length > 1) {
+    return document.location.hash
+      .substring(1)
+      .split('-')
+      .map((color) => '#' + color)
+  }
+  return []
 }
 
-setRandomColorls()
+setRandomColors(true)
